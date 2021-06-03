@@ -7,4 +7,5 @@ require (
 	github.com/go-resty/resty/v2 v2.4.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/spf13/viper v1.7.1
+	github.com/takama/daemon v1.0.0
 )
