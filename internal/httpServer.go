@@ -11,12 +11,12 @@ func Serve() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/sensors", returnSensors)
 
-	log.Fatal(http.ListenAndServe(HttpPort, myRouter))
+	log.Fatal(http.ListenAndServe(Config.HttpPort, myRouter))
 }
 
 func returnSensors(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle sensors request")
-	csvModel, err := LoadModelFromCsv(CsvPath)
+	csvModel, err := LoadModelFromCsv(Config.CsvPath)
 	if err != nil {
 		log.Fatal(err)
 		return

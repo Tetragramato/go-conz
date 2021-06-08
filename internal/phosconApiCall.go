@@ -21,7 +21,7 @@ func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
 		return nil, err
 	}
 
-	if TraceHttp{
+	if Config.TraceHttp{
 		Trace(resp, err)
 	}
 
@@ -31,12 +31,12 @@ func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
 func GetGateway(client *resty.Client) (*Gateway, error) {
 	resp, err := client.R().SetResult(&Gateway{}).
 		EnableTrace().
-		Get(PhosconUrl)
+		Get(Config.PhosconUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	if TraceHttp{
+	if Config.TraceHttp{
 		Trace(resp, err)
 	}
 
@@ -52,7 +52,7 @@ func GetSensors(client *resty.Client, gateway *Gateway, apiKey string) (*resty.R
 		return nil, err
 	}
 
-	if TraceHttp{
+	if Config.TraceHttp{
 		Trace(resp, err)
 	}
 
