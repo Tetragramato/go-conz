@@ -8,13 +8,31 @@ import (
 	"time"
 )
 
+func init() {
+	internal.InitConfig()
+}
+
 func main() {
 	log.Println("Start GO-CONZ...")
+
+	client := resty.New()
+	// Get Gateway specs
+	gatewayResp, err := internal.GetGateway(client)
+	if err != nil {
+		log.Fatal(err)
+	}
 	internal.Parallelize(
 		func() {
 			for true {
-				getAndPersistSensors()
-				time.Sleep(internal.DelayInSecond * time.Second)
+				sensors, err := getSensors(client, gatewayResp)
+				if err != nil {
+					log.Fatal(err)
+				}
+				err = persistSensors(sensors)
+				if err != nil {
+					log.Fatal(err)
+				}
+				time.Sleep(internal.Config.DelayInSecond * time.Second)
 			}
 		},
 		internal.Serve,
@@ -22,41 +40,31 @@ func main() {
 	log.Println("Close GO_CONZ")
 }
 
-func getAndPersistSensors() {
-	client := resty.New()
-
-	//////////////////////
-	// Get Gateway specs
-	gatewayResp, err := internal.GetGateway(client)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//////////////////////
+func getSensors(client *resty.Client, gatewayResp *internal.Gateway) (map[string]interface{}, error) {
 	// Get sensors from Gateway
-	sensors, err := internal.GetSensors(client, gatewayResp, internal.ApiKey)
+	sensors, err := internal.GetSensors(client, gatewayResp, internal.Config.ApiKey)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	/////////////////////
-	// Parse sensors response
 	var parsed map[string]interface{}
 	err = json.Unmarshal(sensors.Body(), &parsed)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
+	return parsed, nil
+}
 
-	/////////////////////
-	sensorsByEtag, err := internal.MakeSensorsGrouped(parsed)
+func persistSensors(sensors map[string]interface{}) error {
+	sensorsByEtag, err := internal.GetSensorsByEtag(sensors)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	/////////////////////
 	// Send structured and grouped sensors to persistence
-	err = internal.WriteCsv(internal.CsvPath, sensorsByEtag)
+	err = internal.WriteCsv(internal.Config.CsvPath, sensorsByEtag)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

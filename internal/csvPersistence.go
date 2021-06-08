@@ -2,27 +2,25 @@ package internal
 
 import (
 	"github.com/gocarina/gocsv"
-	"log"
 	"os"
 )
 
-func WriteCsv(csvFile string, sensorsByEtag map[string][]*Sensor) error {
+func WriteCsv(csvFile string, sensorsByEtag map[string][]*Sensor) (err error) {
 	file, err := os.OpenFile(csvFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return err
+		return
 	}
 
 	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Fatal(err)
-			return
+		cerr := file.Close()
+		if cerr != nil {
+			err = cerr
 		}
 	}(file)
 
 	fileStat, err := file.Stat()
 	if err != nil {
-		return err
+		return
 	}
 
 	var csvSensors []*CsvSensor
@@ -50,29 +48,27 @@ func WriteCsv(csvFile string, sensorsByEtag map[string][]*Sensor) error {
 		err = gocsv.MarshalWithoutHeaders(&csvSensors, file)
 	}
 	if err != nil {
-		return err
+		return
 	}
-	return nil
+	return
 }
 
-func LoadModelFromCsv(csvFile string) ([]*CsvSensor, error) {
+func LoadModelFromCsv(csvFile string) (csvSensors []*CsvSensor, err error) {
 	file, err := os.Open(csvFile)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Fatal(err)
-			return
+		cerr := file.Close()
+		if cerr != nil {
+			err = cerr
 		}
 	}(file)
 
-	var csvSensors []*CsvSensor
-	err = gocsv.UnmarshalFile(file, &csvSensors)
+	err = gocsv.UnmarshalFile(file, csvSensors)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return csvSensors, nil
+	return
 }

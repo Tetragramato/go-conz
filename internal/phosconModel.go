@@ -53,8 +53,8 @@ type CsvSensor struct {
 	Pressure    int
 }
 
-// MakeSensorsGrouped Group sensors by Etag and convert to Sensor struct
-func MakeSensorsGrouped(parsedSensors map[string]interface{}) (map[string][]*Sensor, error) {
+// GetSensorsByEtag Group sensors by Etag and convert to Sensor struct
+func GetSensorsByEtag(parsedSensors map[string]interface{}) (map[string][]*Sensor, error) {
 	sensorsByEtag := make(map[string][]*Sensor, len(parsedSensors))
 	for _, s := range parsedSensors {
 		sensor := &Sensor{}
