@@ -45,6 +45,7 @@ type Sensor struct {
 }
 
 type CsvSensor struct {
+	Uniqueid    string
 	Etag        string
 	Name        string
 	Lastupdated string
