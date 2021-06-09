@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 )
@@ -10,10 +11,17 @@ const (
 	ApiKeyUrl  = "http://%s:%d/api"
 )
 
-func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
+type HttpClient struct {
+	*resty.Client
+}
+
+func NewHttpClient() *HttpClient {
+	return &HttpClient{Client: resty.New()}
+}
+
+func(client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
 
 	resp, err := client.R().SetResult(&APIKey{}).
-		EnableTrace().
 		SetHeader("Content-Type", "application/json").
 		SetBody(`{"devicetype":"go-conz"}`).
 		Post(fmt.Sprintf(ApiKeyUrl, gateway[0].Internalipaddress, gateway[0].Internalport))
@@ -28,9 +36,8 @@ func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
 	return resp.Result().(*APIKey), nil
 }
 
-func GetGateway(client *resty.Client) (*Gateway, error) {
+func(client *HttpClient) GetGateway() (*Gateway, error) {
 	resp, err := client.R().SetResult(&Gateway{}).
-		EnableTrace().
 		Get(Config.PhosconUrl)
 	if err != nil {
 		return nil, err
@@ -44,9 +51,8 @@ func GetGateway(client *resty.Client) (*Gateway, error) {
 
 }
 
-func GetSensors(client *resty.Client, gateway *Gateway, apiKey string) (*resty.Response, error) {
+func(client *HttpClient) getSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
 	resp, err := client.R().
-		EnableTrace().
 		Get(fmt.Sprintf(SensorsUrl, (*gateway)[0].Internalipaddress, (*gateway)[0].Internalport, apiKey))
 	if err != nil {
 		return nil, err
@@ -57,4 +63,25 @@ func GetSensors(client *resty.Client, gateway *Gateway, apiKey string) (*resty.R
 	}
 
 	return resp, nil
+}
+
+func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) (map[string][]*Sensor, error) {
+	// Get sensors from Gateway
+	sensors, err := client.getSensors(gatewayResp, Config.ApiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	//Parse JSON since it's not a standard JSON
+	var parsed map[string]interface{}
+	err = json.Unmarshal(sensors.Body(), &parsed)
+	if err != nil {
+		return nil, err
+	}
+
+	sensorsByEtag, err := GetSensorsByEtag(parsed)
+	if err != nil {
+		return nil, err
+	}
+	return sensorsByEtag, nil
 }

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func WriteCsv(csvFile string, sensorsByEtag map[string][]*Sensor) (err error) {
+func writeCsv(csvFile string, sensorsByEtag map[string][]*Sensor) (err error) {
 	file, err := os.OpenFile(csvFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return
@@ -30,6 +30,7 @@ func WriteCsv(csvFile string, sensorsByEtag map[string][]*Sensor) (err error) {
 				csvSensors = append(
 					csvSensors,
 					&CsvSensor{
+						valSensor.Uniqueid,
 						key,
 						valSensor.Name,
 						valSensor.State.Lastupdated,
@@ -66,9 +67,17 @@ func LoadModelFromCsv(csvFile string) (csvSensors []*CsvSensor, err error) {
 		}
 	}(file)
 
-	err = gocsv.UnmarshalFile(file, csvSensors)
+	err = gocsv.UnmarshalFile(file, &csvSensors)
 	if err != nil {
 		return
 	}
 	return
+}
+
+func PersistSensors(sensorsByEtag map[string][]*Sensor) error {
+	err := writeCsv(Config.CsvPath, sensorsByEtag)
+	if err != nil {
+		return err
+	}
+	return nil
 }
