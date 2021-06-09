@@ -66,7 +66,7 @@ func LoadModelFromCsv(csvFile string) (csvSensors []*CsvSensor, err error) {
 		}
 	}(file)
 
-	err = gocsv.UnmarshalFile(file, csvSensors)
+	err = gocsv.UnmarshalFile(file, &csvSensors)
 	if err != nil {
 		return
 	}

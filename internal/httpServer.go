@@ -2,16 +2,13 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
 
 func Serve() {
-	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/sensors", returnSensors)
-
-	log.Fatal(http.ListenAndServe(Config.HttpPort, myRouter))
+	http.HandleFunc("/sensors", returnSensors)
+	log.Fatal(http.ListenAndServe(Config.HttpPort, nil))
 }
 
 func returnSensors(w http.ResponseWriter, r *http.Request) {

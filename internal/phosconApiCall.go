@@ -11,7 +11,11 @@ const (
 	ApiKeyUrl  = "http://%s:%d/api"
 )
 
-func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
+type HttpClient struct {
+	*resty.Client
+}
+
+func(client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
 
 	resp, err := client.R().SetResult(&APIKey{}).
 		SetHeader("Content-Type", "application/json").
@@ -28,7 +32,7 @@ func GetAPIKey(client *resty.Client, gateway Gateway) (*APIKey, error) {
 	return resp.Result().(*APIKey), nil
 }
 
-func GetGateway(client *resty.Client) (*Gateway, error) {
+func(client *HttpClient) GetGateway() (*Gateway, error) {
 	resp, err := client.R().SetResult(&Gateway{}).
 		Get(Config.PhosconUrl)
 	if err != nil {
@@ -43,7 +47,7 @@ func GetGateway(client *resty.Client) (*Gateway, error) {
 
 }
 
-func getSensors(client *resty.Client, gateway *Gateway, apiKey string) (*resty.Response, error) {
+func(client *HttpClient) getSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
 	resp, err := client.R().
 		Get(fmt.Sprintf(SensorsUrl, (*gateway)[0].Internalipaddress, (*gateway)[0].Internalport, apiKey))
 	if err != nil {
@@ -57,9 +61,9 @@ func getSensors(client *resty.Client, gateway *Gateway, apiKey string) (*resty.R
 	return resp, nil
 }
 
-func GetAndParseSensors(client *resty.Client, gatewayResp *Gateway) (map[string][]*Sensor, error) {
+func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) (map[string][]*Sensor, error) {
 	// Get sensors from Gateway
-	sensors, err := getSensors(client, gatewayResp, Config.ApiKey)
+	sensors, err := client.getSensors(gatewayResp, Config.ApiKey)
 	if err != nil {
 		return nil, err
 	}

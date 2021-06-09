@@ -14,16 +14,16 @@ func init() {
 func main() {
 	log.Println("Start GO-CONZ...")
 
-	client := resty.New()
+	httpClient := &internal.HttpClient{Client: resty.New()}
 	// Get Gateway specs
-	gatewayResp, err := internal.GetGateway(client)
+	gatewayResp, err := httpClient.GetGateway()
 	if err != nil {
 		log.Fatal(err)
 	}
 	internal.Parallelize(
 		func() {
 			for true {
-				sensors, err := internal.GetAndParseSensors(client, gatewayResp)
+				sensors, err := httpClient.GetAndParseSensors(gatewayResp)
 				if err != nil {
 					log.Fatal(err)
 				}
