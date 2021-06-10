@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/go-resty/resty/v2"
 	"github.com/tetragramato/go-conz/internal"
 	"log"
 	"time"
@@ -14,7 +13,7 @@ func init() {
 func main() {
 	log.Println("Start GO-CONZ...")
 
-	httpClient := &internal.HttpClient{Client: resty.New()}
+	httpClient := internal.NewHttpClient()
 	// Get Gateway specs
 	gatewayResp, err := httpClient.GetGateway()
 	if err != nil {

@@ -15,6 +15,10 @@ type HttpClient struct {
 	*resty.Client
 }
 
+func NewHttpClient() *HttpClient {
+	return &HttpClient{Client: resty.New()}
+}
+
 func(client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
 
 	resp, err := client.R().SetResult(&APIKey{}).
