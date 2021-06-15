@@ -10,6 +10,10 @@ const (
 	HumidityType    = "ZHAHumidity"
 )
 
+func (sensor *Sensor) IsSensor() bool {
+	return sensor.Type == TemperatureType || sensor.Type == HumidityType || sensor.Type == PressureType
+}
+
 type APIKey []struct {
 	Success struct {
 		Username string `json:"username"`
@@ -44,7 +48,8 @@ type Sensor struct {
 	Uniqueid  string
 }
 
-type CsvSensor struct {
+// PersistedSensor TODO make a mapper model to model
+type PersistedSensor struct {
 	Uniqueid    string
 	Etag        string
 	Name        string
@@ -54,16 +59,15 @@ type CsvSensor struct {
 	Pressure    int
 }
 
-// GetSensorsByEtag Group sensors by Etag and convert to Sensor struct
-func GetSensorsByEtag(parsedSensors map[string]interface{}) (map[string][]*Sensor, error) {
-	sensorsByEtag := make(map[string][]*Sensor, len(parsedSensors))
+func GetSensors(parsedSensors map[string]interface{}) ([]*Sensor, error) {
+	var sensors []*Sensor
 	for _, s := range parsedSensors {
 		sensor := &Sensor{}
 		err := mapstructure.Decode(s, sensor)
 		if err != nil {
 			return nil, err
 		}
-		sensorsByEtag[sensor.Etag] = append(sensorsByEtag[sensor.Etag], sensor)
+		sensors = append(sensors, sensor)
 	}
-	return sensorsByEtag, nil
+	return sensors, nil
 }

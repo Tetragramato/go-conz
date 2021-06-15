@@ -65,7 +65,7 @@ func(client *HttpClient) getSensors(gateway *Gateway, apiKey string) (*resty.Res
 	return resp, nil
 }
 
-func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) (map[string][]*Sensor, error) {
+func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*Sensor, error) {
 	// Get sensors from Gateway
 	sensors, err := client.getSensors(gatewayResp, Config.ApiKey)
 	if err != nil {
@@ -79,9 +79,9 @@ func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) (map[string][]
 		return nil, err
 	}
 
-	sensorsByEtag, err := GetSensorsByEtag(parsed)
+	sensorsStruct, err := GetSensors(parsed)
 	if err != nil {
 		return nil, err
 	}
-	return sensorsByEtag, nil
+	return sensorsStruct, nil
 }
