@@ -30,6 +30,7 @@ func writeCsv(csvFile string, sensorsByEtag map[string][]*Sensor) (err error) {
 				csvSensors = append(
 					csvSensors,
 					&CsvSensor{
+						valSensor.Uniqueid,
 						key,
 						valSensor.Name,
 						valSensor.State.Lastupdated,
