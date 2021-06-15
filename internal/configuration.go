@@ -11,18 +11,18 @@ var Config Configuration
 const (
 	ApiKey           = "6E588445A8"
 	PhosconUrl       = "https://phoscon.de/discover"
-	CsvPath          = "sensors.csv"
+	DatabasePath     = "goconz-sensors"
 	DelayInSecond    = 30
 	TraceHttp        = true
 	HttpPort         = ":9000"
-	ConfigFileName   = "go-conz-config"
+	ConfigFileName   = "./go-conz-config"
 	PathToConfigFile = "."
 )
 
 type Configuration struct {
 	ApiKey        string
 	PhosconUrl    string
-	CsvPath       string
+	DatabasePath  string
 	DelayInSecond time.Duration
 	TraceHttp     bool
 	HttpPort      string
@@ -32,7 +32,7 @@ func InitConfig() {
 	log.Println("Init config...")
 	viper.SetDefault("apiKey", ApiKey)
 	viper.SetDefault("phosconUrl", PhosconUrl)
-	viper.SetDefault("csvPath", CsvPath)
+	viper.SetDefault("databasePath", DatabasePath)
 	viper.SetDefault("delayInSecond", DelayInSecond)
 	viper.SetDefault("traceHttp", TraceHttp)
 	viper.SetDefault("httpPort", HttpPort)
