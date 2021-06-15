@@ -14,6 +14,8 @@ func main() {
 	log.Println("Start GO-CONZ...")
 
 	httpClient := internal.NewHttpClient()
+	db := internal.NewDB()
+	sensorRepo := internal.NewSensorRepository(db)
 	// Get Gateway specs
 	gatewayResp, err := httpClient.GetGateway()
 	if err != nil {
@@ -26,14 +28,16 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				err = internal.PersistSensors(sensors)
+				err = sensorRepo.SaveAll(sensors)
 				if err != nil {
 					log.Fatal(err)
 				}
 				time.Sleep(internal.Config.DelayInSecond * time.Second)
 			}
 		},
-		internal.Serve,
+		func() {
+			internal.Serve(sensorRepo)
+		},
 	)
 	log.Println("Close GO-CONZ")
 }
