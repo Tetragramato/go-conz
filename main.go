@@ -13,6 +13,7 @@ func init() {
 func main() {
 	log.Println("Start GO-CONZ...")
 
+	//Init db/repo/httpClient
 	httpClient := internal.NewHttpClient()
 	db := internal.NewDB()
 	sensorRepo := internal.NewSensorRepository(db)
@@ -23,12 +24,12 @@ func main() {
 	}
 	internal.Parallelize(
 		func() {
-			for true {
-				sensors, err := httpClient.GetAndParseSensors(gatewayResp)
+			for {
+				listOfSensorsList, err := httpClient.GetAndParseSensors(gatewayResp)
 				if err != nil {
 					log.Fatal(err)
 				}
-				err = sensorRepo.SaveAll(sensors)
+				err = sensorRepo.SaveAll(listOfSensorsList)
 				if err != nil {
 					log.Fatal(err)
 				}
