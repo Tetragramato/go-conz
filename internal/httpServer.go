@@ -7,22 +7,25 @@ import (
 )
 
 func Serve(repo SensorRepository) {
-	http.HandleFunc("/sensors", func(w http.ResponseWriter, r *http.Request) {
-		returnSensors(repo, w, r)
-	})
+	http.HandleFunc(
+		"/sensors",
+		func(w http.ResponseWriter, r *http.Request) {
+			handleSensors(repo, w, r)
+		},
+	)
 	log.Fatal(http.ListenAndServe(Config.HttpPort, nil))
 }
 
-func returnSensors(repo SensorRepository, w http.ResponseWriter, r *http.Request) {
+func handleSensors(repo SensorRepository, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle sensors request")
-	sensors, err := repo.GetAll()
+	listOfSensorsList, err := repo.GetAll()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	err = json.NewEncoder(w).Encode(&sensors)
+	err = json.NewEncoder(w).Encode(&listOfSensorsList)
 	if err != nil {
 		log.Fatal(err)
 		return
