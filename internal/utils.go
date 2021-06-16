@@ -33,3 +33,13 @@ func Parallelize(functions ...func()) {
 		}(function)
 	}
 }
+
+// Contains Check value existance in a slice
+func Contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
