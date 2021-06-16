@@ -19,7 +19,7 @@ func NewHttpClient() *HttpClient {
 	return &HttpClient{Client: resty.New()}
 }
 
-func(client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
+func (client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
 
 	resp, err := client.R().SetResult(&APIKey{}).
 		SetHeader("Content-Type", "application/json").
@@ -29,21 +29,21 @@ func(client *HttpClient) GetAPIKey(gateway Gateway) (*APIKey, error) {
 		return nil, err
 	}
 
-	if Config.TraceHttp{
+	if Config.TraceHttp {
 		Trace(resp, err)
 	}
 
 	return resp.Result().(*APIKey), nil
 }
 
-func(client *HttpClient) GetGateway() (*Gateway, error) {
+func (client *HttpClient) GetGateway() (*Gateway, error) {
 	resp, err := client.R().SetResult(&Gateway{}).
 		Get(Config.PhosconUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	if Config.TraceHttp{
+	if Config.TraceHttp {
 		Trace(resp, err)
 	}
 
@@ -51,37 +51,37 @@ func(client *HttpClient) GetGateway() (*Gateway, error) {
 
 }
 
-func(client *HttpClient) getSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
+func (client *HttpClient) getRawSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
 	resp, err := client.R().
 		Get(fmt.Sprintf(SensorsUrl, (*gateway)[0].Internalipaddress, (*gateway)[0].Internalport, apiKey))
 	if err != nil {
 		return nil, err
 	}
 
-	if Config.TraceHttp{
+	if Config.TraceHttp {
 		Trace(resp, err)
 	}
 
 	return resp, nil
 }
 
-func(client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*Sensor, error) {
+func (client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*SensorsList, error) {
 	// Get sensors from Gateway
-	sensors, err := client.getSensors(gatewayResp, Config.ApiKey)
+	rawSensors, err := client.getRawSensors(gatewayResp, Config.ApiKey)
 	if err != nil {
 		return nil, err
 	}
 
 	//Parse JSON since it's not a standard JSON
-	var parsed map[string]interface{}
-	err = json.Unmarshal(sensors.Body(), &parsed)
+	var parsedJson map[string]interface{}
+	err = json.Unmarshal(rawSensors.Body(), &parsedJson)
 	if err != nil {
 		return nil, err
 	}
 
-	sensorsStruct, err := GetSensors(parsed)
+	listOfSensorsList, err := GetListOfSensorsList(parsedJson)
 	if err != nil {
 		return nil, err
 	}
-	return sensorsStruct, nil
+	return listOfSensorsList, nil
 }

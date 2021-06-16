@@ -15,13 +15,13 @@ func NewSensorRepository(db *Database) SensorRepository {
 }
 
 type SensorRepository interface {
-	GetAll() ([]*PersistedSensor, error)
-	SaveAll([]*Sensor) error
-	Save(sensor *PersistedSensor) error
+	GetAll() ([]*SensorsList, error)
+	SaveAll([]*SensorsList) error
+	Save(sensor *SensorsList) error
 }
 
-func (repo *sensorRepository) GetAll() ([]*PersistedSensor, error) {
-	var sensors []*PersistedSensor
+func (repo *sensorRepository) GetAll() ([]*SensorsList, error) {
+	var sensorsList []*SensorsList
 
 	err := repo.db.instance.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -29,62 +29,54 @@ func (repo *sensorRepository) GetAll() ([]*PersistedSensor, error) {
 		it := txn.NewIterator(opts)
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
-			sensor, err := getSensor(it.Item())
+			sensor, err := getSensorsList(it.Item())
 			if err != nil {
 				return err
 			}
-			sensors = append(sensors, sensor)
+			sensorsList = append(sensorsList, sensor)
 		}
 		return nil
 	})
-	return sensors, err
+	return sensorsList, err
 }
 
-func (repo *sensorRepository) Save(sensor *PersistedSensor) error {
+func (repo *sensorRepository) Save(sensorsList *SensorsList) error {
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(sensor)
+	err := encoder.Encode(sensorsList)
 	if err != nil {
 		return err
 	}
 
 	return repo.db.instance.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(sensor.Etag), buffer.Bytes())
+		return txn.Set([]byte(sensorsList.Etag), buffer.Bytes())
 	})
 }
 
-func (repo *sensorRepository) SaveAll(sensors []*Sensor) error {
-	for _, value := range sensors {
-		if value.IsSensor() {
-			val := &PersistedSensor{
-				Uniqueid:    value.Uniqueid,
-				Etag:        value.Etag,
-				Name:        value.Name,
-				Lastupdated: value.State.Lastupdated,
-				Temperature: value.State.Temperature,
-				Humidity:    value.State.Humidity,
-				Pressure:    value.State.Pressure,
-			}
-			err := repo.Save(val)
-			if err != nil {
-				return err
-			}
+func (repo *sensorRepository) SaveAll(listOfSensors []*SensorsList) error {
+	for _, value := range listOfSensors {
+		err := repo.Save(value)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func getSensor(item *badger.Item) (*PersistedSensor, error) {
-	var sensor PersistedSensor
+func getSensorsList(item *badger.Item) (*SensorsList, error) {
+	var sensorsList SensorsList
 	var buffer bytes.Buffer
 
 	err := item.Value(func(val []byte) error {
 		_, err := buffer.Write(val)
 		return err
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	decoder := gob.NewDecoder(&buffer)
-	err = decoder.Decode(&sensor)
+	err = decoder.Decode(&sensorsList)
 
-	return &sensor, err
+	return &sensorsList, err
 }
