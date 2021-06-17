@@ -7,11 +7,11 @@ import (
 )
 
 type sensorRepository struct {
-	db *Database
+	operation Operable
 }
 
-func NewSensorRepository(db *Database) SensorRepository {
-	return &sensorRepository{db}
+func NewSensorRepository(operation Operable) SensorRepository {
+	return &sensorRepository{operation}
 }
 
 type SensorRepository interface {
@@ -21,36 +21,25 @@ type SensorRepository interface {
 }
 
 func (repo *sensorRepository) GetAll() ([]*SensorsList, error) {
-	var sensorsList []*SensorsList
-
-	err := repo.db.instance.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = 10
-		it := txn.NewIterator(opts)
-		defer it.Close()
-		for it.Rewind(); it.Valid(); it.Next() {
-			sensor, err := getSensorsList(it.Item())
+	items, err := repo.operation.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	var listOfSensorsList []*SensorsList
+	for _, item := range items {
+		if string(item.Key()) != DbApiKey {
+			val, err := getSensorsList(item)
 			if err != nil {
-				return err
+				return nil, err
 			}
-			sensorsList = append(sensorsList, sensor)
+			listOfSensorsList = append(listOfSensorsList, val)
 		}
-		return nil
-	})
-	return sensorsList, err
+	}
+	return listOfSensorsList, nil
 }
 
 func (repo *sensorRepository) Save(sensorsList *SensorsList) error {
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(sensorsList)
-	if err != nil {
-		return err
-	}
-
-	return repo.db.instance.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(sensorsList.Etag), buffer.Bytes())
-	})
+	return repo.operation.InsertOrUpdate(sensorsList, sensorsList.Etag)
 }
 
 func (repo *sensorRepository) SaveAll(listOfSensors []*SensorsList) error {
@@ -63,10 +52,10 @@ func (repo *sensorRepository) SaveAll(listOfSensors []*SensorsList) error {
 	return nil
 }
 
+//TODO peu peut être mieux faire pour eviter l'import de badger
 func getSensorsList(item *badger.Item) (*SensorsList, error) {
 	var sensorsList SensorsList
 	var buffer bytes.Buffer
-
 	err := item.Value(func(val []byte) error {
 		_, err := buffer.Write(val)
 		return err
