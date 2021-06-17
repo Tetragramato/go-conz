@@ -12,16 +12,20 @@ func init() {
 
 func main() {
 	log.Println("Start GO-CONZ...")
-
 	//Init db/repo/httpClient
-	httpClient := internal.NewHttpClient()
 	db := internal.NewDB()
-	sensorRepo := internal.NewSensorRepository(db)
+	httpClient := internal.NewHttpClient()
 	// Get Gateway specs
 	gatewayResp, err := httpClient.GetGateway()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Println("Getting and setting API Key...")
+	apiKey := internal.NewApiKeyConfig(db, httpClient).RegisterApiKey(gatewayResp)
+	internal.Config.ApiKey = apiKey
+
+	sensorRepo := internal.NewSensorRepository(db)
 	internal.Parallelize(
 		func() {
 			for {

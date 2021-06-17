@@ -10,7 +10,7 @@ const (
 	HumidityType    = "ZHAHumidity"
 )
 
-type APIKey []struct {
+type APIKey struct {
 	Success struct {
 		Username string `json:"username"`
 	} `json:"success"`
@@ -75,6 +75,18 @@ type SensorsList struct {
 	Sensors []*Sensor `json:"sensors"`
 }
 
+func GetApiKey(parsedKey []interface{}) (*APIKey, error) {
+	apiKey := &APIKey{}
+	for _, s := range parsedKey {
+		err := mapstructure.Decode(s, apiKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return apiKey, nil
+}
+
+//TODO peut être simplifié ?
 func GetListOfSensorsList(parsedSensors map[string]interface{}) ([]*SensorsList, error) {
 
 	sensorsByEtag := make(map[string][]*PhosconSensor, len(parsedSensors))
