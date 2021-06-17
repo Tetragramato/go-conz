@@ -9,7 +9,6 @@ import (
 var Config Configuration
 
 const (
-	ApiKey           = "6E588445A8"
 	PhosconUrl       = "https://phoscon.de/discover"
 	DatabasePath     = "goconz-sensors"
 	DelayInSecond    = 30
@@ -30,7 +29,6 @@ type Configuration struct {
 
 func InitConfig() {
 	log.Println("Init config...")
-	viper.SetDefault("apiKey", ApiKey)
 	viper.SetDefault("phosconUrl", PhosconUrl)
 	viper.SetDefault("databasePath", DatabasePath)
 	viper.SetDefault("delayInSecond", DelayInSecond)
