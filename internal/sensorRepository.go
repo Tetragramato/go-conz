@@ -15,34 +15,34 @@ func NewSensorRepository(operation Operable) SensorRepository {
 }
 
 type SensorRepository interface {
-	GetAll() ([]*SensorsList, error)
-	SaveAll([]*SensorsList) error
-	Save(sensor *SensorsList) error
+	GetAll() ([]*InputSensors, error)
+	SaveAll([]*InputSensors) error
+	Save(sensor *InputSensors) error
 }
 
-func (repo *sensorRepository) GetAll() ([]*SensorsList, error) {
+func (repo *sensorRepository) GetAll() ([]*InputSensors, error) {
 	items, err := repo.operation.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	var listOfSensorsList []*SensorsList
+	var listOfSensors []*InputSensors
 	for _, item := range items {
 		if string(item.Key()) != DbApiKey {
 			val, err := getSensorsList(item)
 			if err != nil {
 				return nil, err
 			}
-			listOfSensorsList = append(listOfSensorsList, val)
+			listOfSensors = append(listOfSensors, val)
 		}
 	}
-	return listOfSensorsList, nil
+	return listOfSensors, nil
 }
 
-func (repo *sensorRepository) Save(sensorsList *SensorsList) error {
+func (repo *sensorRepository) Save(sensorsList *InputSensors) error {
 	return repo.operation.InsertOrUpdate(sensorsList, sensorsList.Etag)
 }
 
-func (repo *sensorRepository) SaveAll(listOfSensors []*SensorsList) error {
+func (repo *sensorRepository) SaveAll(listOfSensors []*InputSensors) error {
 	for _, value := range listOfSensors {
 		err := repo.Save(value)
 		if err != nil {
@@ -53,8 +53,8 @@ func (repo *sensorRepository) SaveAll(listOfSensors []*SensorsList) error {
 }
 
 //TODO peu peut être mieux faire pour eviter l'import de badger
-func getSensorsList(item *badger.Item) (*SensorsList, error) {
-	var sensorsList SensorsList
+func getSensorsList(item *badger.Item) (*InputSensors, error) {
+	var sensorsList InputSensors
 	var buffer bytes.Buffer
 	err := item.Value(func(val []byte) error {
 		_, err := buffer.Write(val)
