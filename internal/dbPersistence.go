@@ -43,7 +43,6 @@ func (database database) InsertOrUpdate(val interface{}, key string) error {
 
 		dataAsBytes = buffer.Bytes()
 	}
-
 	return database.instance.Update(func(txn *badger.Txn) error {
 		return txn.Set([]byte(key), dataAsBytes)
 	})

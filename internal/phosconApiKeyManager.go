@@ -21,7 +21,7 @@ func NewApiKeyConfig(database Operable, httpClient *HttpClient) *ApiKeyConfig {
 	}
 }
 
-//TODO renvoyer les erreurs plutot que les logguer
+// RegisterApiKey TODO renvoyer les erreurs plutot que les logguer
 func (config ApiKeyConfig) RegisterApiKey(gateway *Gateway) string {
 	log.Println("Getting API Key from DB...")
 	apiKey, err := config.database.Get(DbApiKey)

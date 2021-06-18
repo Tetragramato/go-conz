@@ -29,11 +29,11 @@ func main() {
 	internal.Parallelize(
 		func() {
 			for {
-				listOfSensorsList, err := httpClient.GetAndParseSensors(gatewayResp)
+				listOfSensors, err := httpClient.GetAndParseSensors(gatewayResp)
 				if err != nil {
 					log.Fatal(err)
 				}
-				err = sensorRepo.SaveAll(listOfSensorsList)
+				err = sensorRepo.SaveAll(listOfSensors)
 				if err != nil {
 					log.Fatal(err)
 				}
