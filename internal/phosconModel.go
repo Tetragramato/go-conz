@@ -16,6 +16,17 @@ type APIKey struct {
 	} `json:"success"`
 }
 
+func GetApiKey(parsedKey []interface{}) (*APIKey, error) {
+	apiKey := &APIKey{}
+	for _, s := range parsedKey {
+		err := mapstructure.Decode(s, apiKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return apiKey, nil
+}
+
 type Gateway []struct {
 	Internalipaddress string `json:"internalipaddress"`
 	Internalport      int    `json:"internalport"`
@@ -44,12 +55,13 @@ type PhosconSensor struct {
 	Uniqueid  string
 }
 
-func (sensor *PhosconSensor) ToSensor() *Sensor {
-	return &Sensor{
+func (sensor *PhosconSensor) ToInputSensor() *InputSensor {
+	return &InputSensor{
 		Uniqueid:    sensor.Uniqueid,
 		Etag:        sensor.Etag,
 		Name:        sensor.Name,
 		Lastupdated: sensor.State.Lastupdated,
+		Type:        sensor.Type,
 		Temperature: sensor.State.Temperature,
 		Humidity:    sensor.State.Humidity,
 		Pressure:    sensor.State.Pressure,
@@ -58,63 +70,4 @@ func (sensor *PhosconSensor) ToSensor() *Sensor {
 
 func (sensor *PhosconSensor) IsSensor() bool {
 	return sensor.Type == TemperatureType || sensor.Type == HumidityType || sensor.Type == PressureType
-}
-
-type Sensor struct {
-	Uniqueid    string `json:"uniqueId"`
-	Etag        string `json:"etag"`
-	Name        string `json:"name"`
-	Lastupdated string `json:"lastUpdated"`
-	Temperature int    `json:"temperature"`
-	Humidity    int    `json:"humidity"`
-	Pressure    int    `json:"pressure"`
-}
-
-type SensorsList struct {
-	Etag    string    `json:"etag"`
-	Sensors []*Sensor `json:"sensors"`
-}
-
-func GetApiKey(parsedKey []interface{}) (*APIKey, error) {
-	apiKey := &APIKey{}
-	for _, s := range parsedKey {
-		err := mapstructure.Decode(s, apiKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return apiKey, nil
-}
-
-//TODO peut être simplifié ?
-func GetListOfSensorsList(parsedSensors map[string]interface{}) ([]*SensorsList, error) {
-
-	sensorsByEtag := make(map[string][]*PhosconSensor, len(parsedSensors))
-	var etags []string
-	for _, s := range parsedSensors {
-		phosconSensor := &PhosconSensor{}
-		err := mapstructure.Decode(s, phosconSensor)
-		if err != nil {
-			return nil, err
-		}
-		if phosconSensor.IsSensor() {
-			if !Contains(etags, phosconSensor.Etag) {
-				etags = append(etags, phosconSensor.Etag)
-			}
-			sensorsByEtag[phosconSensor.Etag] = append(sensorsByEtag[phosconSensor.Etag], phosconSensor)
-		}
-	}
-
-	var listOfSensorsList []*SensorsList
-	for _, etag := range etags {
-		sensorsList := &SensorsList{Etag: etag}
-		var sensor []*Sensor
-		for _, sensorVal := range sensorsByEtag[etag] {
-			sensor = append(sensor, sensorVal.ToSensor())
-		}
-		sensorsList.Sensors = sensor
-		listOfSensorsList = append(listOfSensorsList, sensorsList)
-	}
-
-	return listOfSensorsList, nil
 }

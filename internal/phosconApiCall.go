@@ -25,7 +25,6 @@ func NewHttpClient() *HttpClient {
 }
 
 func (client *HttpClient) getRawAPIKey(gateway *Gateway) (*resty.Response, error) {
-
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(`{"devicetype":"go-conz"}`).
@@ -92,7 +91,7 @@ func (client *HttpClient) getRawSensors(gateway *Gateway, apiKey string) (*resty
 	return resp, err
 }
 
-func (client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*SensorsList, error) {
+func (client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*InputSensors, error) {
 	// Get sensors from Gateway
 	rawSensors, err := client.getRawSensors(gatewayResp, Config.ApiKey)
 	if err != nil {
@@ -105,7 +104,6 @@ func (client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*SensorsLi
 	if err != nil {
 		return nil, err
 	}
-
-	listOfSensorsList, err := GetListOfSensorsList(parsedJson)
-	return listOfSensorsList, err
+	listOfSensors, err := GetInputSensors(parsedJson)
+	return listOfSensors, err
 }
