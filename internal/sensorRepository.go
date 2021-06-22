@@ -27,7 +27,7 @@ func (repo *sensorRepository) GetAll() ([]*InputSensors, error) {
 	}
 	var listOfSensors []*InputSensors
 	for _, item := range items {
-		if string(item.Key()) != DbApiKey {
+		if GetConcreteKey(item.Key()) != DbApiKey {
 			val, err := getSensorsList(item)
 			if err != nil {
 				return nil, err
