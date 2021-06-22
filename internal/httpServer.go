@@ -16,7 +16,6 @@ func Serve(repo SensorRepository) {
 	log.Fatal(http.ListenAndServe(Config.HttpPort, nil))
 }
 
-//TODO revoir le GetOutputSensors, y a moyen de faire mieux
 func handleSensors(repo SensorRepository, w http.ResponseWriter, r *http.Request) {
 	log.Println("Handle sensors request")
 	listOfSensors, err := repo.GetAll()
@@ -24,10 +23,10 @@ func handleSensors(repo SensorRepository, w http.ResponseWriter, r *http.Request
 		log.Fatal(err)
 		return
 	}
-	ouputSensors := GetOutputSensors(listOfSensors)
+	outputSensors := GetOutputSensors(listOfSensors)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	err = json.NewEncoder(w).Encode(&ouputSensors)
+	err = json.NewEncoder(w).Encode(&outputSensors)
 	if err != nil {
 		log.Fatal(err)
 		return

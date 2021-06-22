@@ -22,7 +22,7 @@ func main() {
 	}
 
 	log.Println("Getting and setting API Key...")
-	apiKey := internal.NewApiKeyConfig(db, httpClient).RegisterApiKey(gatewayResp)
+	apiKey := internal.NewApiKeyConfig(db).RegisterApiKey(gatewayResp)
 	internal.Config.ApiKey = apiKey
 
 	sensorRepo := internal.NewSensorRepository(db)

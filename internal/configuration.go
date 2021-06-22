@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var Config Configuration
+var Config *Configuration
 
 const (
 	PhosconUrl       = "https://phoscon.de/discover"
