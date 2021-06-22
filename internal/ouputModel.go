@@ -7,7 +7,7 @@ type OutputSensors struct {
 	Events   []*SensorEvent `json:"events"`
 }
 
-type pairIdName struct {
+type tupleIdName struct {
 	uniqueid   string
 	name       string
 	sensorType string
@@ -21,15 +21,16 @@ type SensorEvent struct {
 	Pressure    int    `json:"pressure"`
 }
 
+// GetOutputSensors TODO peut être simplifié ?
 func GetOutputSensors(listSensorsList []*InputSensors) []*OutputSensors {
 	var flatMapSensors []*InputSensor
 	for _, sensorList := range listSensorsList {
 		flatMapSensors = append(flatMapSensors, sensorList.Sensors...)
 	}
 
-	mapSensor := make(map[pairIdName][]*SensorEvent)
+	mapSensor := make(map[tupleIdName][]*SensorEvent)
 	for _, sensor := range flatMapSensors {
-		pairIdName := pairIdName{
+		pairIdName := tupleIdName{
 			uniqueid:   sensor.Uniqueid,
 			name:       sensor.Name,
 			sensorType: sensor.Type,

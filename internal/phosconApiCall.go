@@ -2,29 +2,24 @@ package internal
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"log"
-	"net/http"
-	"time"
 )
 
 const (
 	SensorsUrl = "http://%s:%d/api/%s/sensors"
 	ApiKeyUrl  = "http://%s:%d/api"
-	CountRetry = 10
 )
 
-type HttpClient struct {
+type httpClient struct {
 	*resty.Client
 }
 
-func NewHttpClient() *HttpClient {
-	return &HttpClient{Client: resty.New()}
+func NewHttpClient() *httpClient {
+	return &httpClient{Client: resty.New()}
 }
 
-func (client *HttpClient) getRawAPIKey(gateway *Gateway) (*resty.Response, error) {
+func (client *httpClient) getRawAPIKey(gateway *Gateway) (*resty.Response, error) {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(`{"devicetype":"go-conz"}`).
@@ -37,39 +32,7 @@ func (client *HttpClient) getRawAPIKey(gateway *Gateway) (*resty.Response, error
 	return resp, err
 }
 
-func (client HttpClient) GetAndParseAPIKey(gateway *Gateway) (*APIKey, error) {
-	var retryCounter int
-	client.
-		SetRetryCount(CountRetry).
-		SetRetryWaitTime(5 * time.Second).
-		AddRetryCondition(
-			func(r *resty.Response, err error) bool {
-				retryCounter++
-				log.Printf("try (%d) a call to %s ...", retryCounter, r.Request.URL)
-				return r.StatusCode() == http.StatusForbidden
-			},
-		)
-	rawApiKey, err := client.getRawAPIKey(gateway)
-	if err != nil {
-		return nil, err
-	}
-
-	if retryCounter > CountRetry {
-		return nil, errors.New("fail to get APIKey : number of retries exceeded. Ensure you opened the Gateway to register a new application")
-	}
-	//TODO voir si c'est utile
-	client.SetRetryCount(0)
-
-	var parsedJson []interface{}
-	err = json.Unmarshal(rawApiKey.Body(), &parsedJson)
-	if err != nil {
-		return nil, err
-	}
-	apiKey, err := GetApiKey(parsedJson)
-	return apiKey, err
-}
-
-func (client *HttpClient) GetGateway() (*Gateway, error) {
+func (client *httpClient) GetGateway() (*Gateway, error) {
 	resp, err := client.R().SetResult(&Gateway{}).
 		Get(Config.PhosconUrl)
 
@@ -80,7 +43,7 @@ func (client *HttpClient) GetGateway() (*Gateway, error) {
 	return resp.Result().(*Gateway), err
 }
 
-func (client *HttpClient) getRawSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
+func (client *httpClient) getRawSensors(gateway *Gateway, apiKey string) (*resty.Response, error) {
 	resp, err := client.R().
 		Get(fmt.Sprintf(SensorsUrl, (*gateway)[0].Internalipaddress, (*gateway)[0].Internalport, apiKey))
 
@@ -91,7 +54,7 @@ func (client *HttpClient) getRawSensors(gateway *Gateway, apiKey string) (*resty
 	return resp, err
 }
 
-func (client *HttpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*InputSensors, error) {
+func (client *httpClient) GetAndParseSensors(gatewayResp *Gateway) ([]*InputSensors, error) {
 	// Get sensors from Gateway
 	rawSensors, err := client.getRawSensors(gatewayResp, Config.ApiKey)
 	if err != nil {
