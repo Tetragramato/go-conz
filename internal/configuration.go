@@ -16,6 +16,7 @@ const (
 	HttpPort         = ":9000"
 	ConfigFileName   = "./go-conz-config"
 	PathToConfigFile = "."
+	EnvPrefix        = "GOCONZ"
 )
 
 type Configuration struct {
@@ -34,6 +35,7 @@ func InitConfig() {
 	viper.SetDefault("delayInSecond", DelayInSecond)
 	viper.SetDefault("traceHttp", TraceHttp)
 	viper.SetDefault("httpPort", HttpPort)
+	viper.SetEnvPrefix(EnvPrefix)
 	viper.AutomaticEnv()
 
 	viper.SetConfigName(ConfigFileName)
