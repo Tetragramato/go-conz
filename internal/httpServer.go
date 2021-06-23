@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-func Serve(repo SensorRepository) {
+func Serve(repo SensorRepository) error {
 	http.HandleFunc(
 		"/sensors",
 		func(w http.ResponseWriter, r *http.Request) {
 			handleSensors(repo, w, r)
 		},
 	)
-	log.Fatal(http.ListenAndServe(Config.HttpPort, nil))
+	return http.ListenAndServe(Config.HttpPort, nil)
 }
 
 func handleSensors(repo SensorRepository, w http.ResponseWriter, r *http.Request) {

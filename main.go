@@ -22,7 +22,10 @@ func main() {
 	}
 
 	log.Println("Getting and setting API Key...")
-	apiKey := internal.NewApiKeyConfig(db).RegisterApiKey(gatewayResp)
+	apiKey, err := internal.NewApiKeyConfig(db).RegisterApiKey(gatewayResp)
+	if err != nil {
+		log.Fatal(err)
+	}
 	internal.Config.ApiKey = apiKey
 
 	sensorRepo := internal.NewSensorRepository(db)
@@ -31,17 +34,18 @@ func main() {
 			for {
 				listOfSensors, err := httpClient.GetAndParseSensors(gatewayResp)
 				if err != nil {
-					log.Fatal(err)
-				}
-				err = sensorRepo.SaveAll(listOfSensors)
-				if err != nil {
-					log.Fatal(err)
+					log.Printf("Error while retrieving sensors: %v", err.Error())
+				} else {
+					err = sensorRepo.SaveAll(listOfSensors)
+					if err != nil {
+						log.Printf("Error while saving sensors: %v", err.Error())
+					}
 				}
 				time.Sleep(internal.Config.DelayInSecond * time.Second)
 			}
 		},
 		func() {
-			internal.Serve(sensorRepo)
+			log.Fatal(internal.Serve(sensorRepo))
 		},
 	)
 	log.Println("Close GO-CONZ")
