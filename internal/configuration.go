@@ -10,7 +10,7 @@ var Config *Configuration
 
 const (
 	PhosconUrl       = "https://phoscon.de/discover"
-	DatabasePath     = "goconz-sensors"
+	DatabasePath     = "./goconz-sensors"
 	DelayInSecond    = 30
 	TraceHttp        = true
 	HttpPort         = ":9000"
