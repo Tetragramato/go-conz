@@ -4,6 +4,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"log"
 	"sync"
+	"time"
 )
 
 func Trace(resp *resty.Response, err error) {
@@ -34,7 +35,7 @@ func Parallelize(functions ...func()) {
 	}
 }
 
-// Contains Check value existance in a slice
+// Contains Check value existence in a slice
 func Contains(s []string, str string) bool {
 	for _, v := range s {
 		if v == str {
@@ -42,4 +43,28 @@ func Contains(s []string, str string) bool {
 		}
 	}
 	return false
+}
+
+type poller struct {
+	ticker   *time.Ticker
+	function func()
+}
+
+// RunNewPoller Run a new Poller around a lambda function, that tick every time.Duration
+func RunNewPoller(timeInterval time.Duration, function func()) *poller {
+	ticker := time.NewTicker(timeInterval)
+	defer ticker.Stop()
+	poll := &poller{
+		ticker:   ticker,
+		function: function,
+	}
+	poll.Run()
+	return poll
+}
+
+func (p *poller) Run() {
+	for ; true; <-p.ticker.C {
+		log.Println("Tick for polling...")
+		p.function()
+	}
 }
