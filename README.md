@@ -31,6 +31,7 @@ databasePath: "./goconz-sensors"
 delayInSecond: 30
 traceHttp: true
 httpPort: ":9000"
+readOnly: false
 ```
 
 Or your can pass configuration values to the command line if you wish :
@@ -96,4 +97,4 @@ JSON structure example :
 
 - [Viper](https://github.com/spf13/viper) for configuration
 - [Badger](https://github.com/dgraph-io/badger) for database
-- [Resty](https://github.com/go-resty/resty) for REST http client
+- [Resty](https://github.com/go-resty/resty) for REST http client & retry

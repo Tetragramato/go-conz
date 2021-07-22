@@ -17,6 +17,7 @@ const (
 	ConfigFileName   = "./go-conz-config"
 	PathToConfigFile = "."
 	EnvPrefix        = "GOCONZ"
+	ReadOnly         = false
 )
 
 type Configuration struct {
@@ -26,6 +27,7 @@ type Configuration struct {
 	DelayInSecond time.Duration
 	TraceHttp     bool
 	HttpPort      string
+	ReadOnly      bool
 }
 
 func InitConfig() {
@@ -35,6 +37,7 @@ func InitConfig() {
 	viper.SetDefault("delayInSecond", DelayInSecond)
 	viper.SetDefault("traceHttp", TraceHttp)
 	viper.SetDefault("httpPort", HttpPort)
+	viper.SetDefault("readOnly", ReadOnly)
 	viper.SetEnvPrefix(EnvPrefix)
 	viper.AutomaticEnv()
 

@@ -31,19 +31,21 @@ func main() {
 	sensorRepo := internal.NewSensorRepository(db)
 	internal.Parallelize(
 		func() {
-			internal.RunNewPoller(
-				time.Second*internal.Config.DelayInSecond,
-				func() {
-					listOfSensors, err := httpClient.GetAndParseSensors(gatewayResp)
-					if err != nil {
-						log.Printf("Error while retrieving sensors: %v", err.Error())
-					} else {
-						err = sensorRepo.SaveAll(listOfSensors)
+			if !internal.Config.ReadOnly {
+				internal.RunNewPoller(
+					time.Second*internal.Config.DelayInSecond,
+					func() {
+						listOfSensors, err := httpClient.GetAndParseSensors(gatewayResp)
 						if err != nil {
-							log.Printf("Error while saving sensors: %v", err.Error())
+							log.Printf("Error while retrieving sensors: %v", err.Error())
+						} else {
+							err = sensorRepo.SaveAll(listOfSensors)
+							if err != nil {
+								log.Printf("Error while saving sensors: %v", err.Error())
+							}
 						}
-					}
-				})
+					})
+			}
 		},
 		func() {
 			log.Fatal(internal.Serve(sensorRepo))
